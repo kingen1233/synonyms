@@ -1,0 +1,54 @@
+# ---------------------------------------------
+# .NET build output
+# ---------------------------------------------
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
+
+# ---------------------------------------------
+# Test / coverage results
+# ---------------------------------------------
+[Tt]est[Rr]esults/
+coverage/
+*.coverage
+*.trx
+
+# ---------------------------------------------
+# IDE / editor
+# ---------------------------------------------
+.idea/
+.vs/
+*.swp
+
+# ---------------------------------------------
+# Node / frontend
+# ---------------------------------------------
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment overrides (keep committed .env.example if added)
+.env
+.env.*.local
+
+# ---------------------------------------------
+# OS files
+# ---------------------------------------------
+.DS_Store
+Thumbs.db
+
+
+## Copilot
+plan.md
+copilot-instructions.md
