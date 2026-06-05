@@ -38,8 +38,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Local environment overrides (keep committed .env.example if added)
-.env
 .env.*.local
 
 # ---------------------------------------------
@@ -49,6 +47,4 @@ pnpm-debug.log*
 Thumbs.db
 
 
-## Copilot
-plan.md
-copilot-instructions.md
+.github/
