@@ -1,0 +1,421 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "Synonyms Tool API",
+    "description": "In-memory bidirectional synonym graph with transitive lookup.",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/synonyms": {
+      "post": {
+        "tags": [
+          "Synonyms"
+        ],
+        "summary": "Creates a bidirectional synonym link between two words.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSynonymRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSynonymRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSynonymRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Link created (or already existed)."
+          },
+          "400": {
+            "description": "Validation failed (empty words, same word, exceeds 100 chars).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/synonyms/search": {
+      "get": {
+        "tags": [
+          "Synonyms"
+        ],
+        "summary": "Returns all known words that start with the given prefix (case-insensitive).\nRequires at least 3 characters to prevent returning the entire dictionary.",
+        "parameters": [
+          {
+            "name": "prefix",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching words (may be empty).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WordListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Prefix is shorter than 3 characters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/synonyms/{word}": {
+      "get": {
+        "tags": [
+          "Synonyms"
+        ],
+        "summary": "Returns all synonyms for the given word, including transitive ones.\nThe queried word itself is excluded from the result.",
+        "parameters": [
+          {
+            "name": "word",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synonym list (may be empty if the word has no links).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SynonymListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Word does not exist in the store.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Synonyms"
+        ],
+        "summary": "Renames a word globally across all synonym relationships.",
+        "parameters": [
+          {
+            "name": "word",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameWordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameWordRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameWordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Word renamed."
+          },
+          "400": {
+            "description": "Validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Word not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The new name is already taken by another word.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/synonyms/link": {
+      "delete": {
+        "tags": [
+          "Synonyms"
+        ],
+        "summary": "Removes the direct synonym link between two words. Both words remain in the store.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteLinkRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteLinkRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteLinkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Link removed."
+          },
+          "400": {
+            "description": "WordA and WordB are the same.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Link did not exist.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/synonyms/word/{word}": {
+      "delete": {
+        "tags": [
+          "Synonyms"
+        ],
+        "summary": "Completely removes a word and all its synonym relationships from the store.",
+        "parameters": [
+          {
+            "name": "word",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Word removed."
+          },
+          "404": {
+            "description": "Word not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddSynonymRequest": {
+        "required": [
+          "wordA",
+          "wordB"
+        ],
+        "type": "object",
+        "properties": {
+          "wordA": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "wordB": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Request payload to create a bidirectional synonym link between two words."
+      },
+      "DeleteLinkRequest": {
+        "required": [
+          "wordA",
+          "wordB"
+        ],
+        "type": "object",
+        "properties": {
+          "wordA": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "wordB": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Request to remove the link between two synonyms without deleting either word."
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
+      "RenameWordRequest": {
+        "required": [
+          "newWord"
+        ],
+        "type": "object",
+        "properties": {
+          "newWord": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Request to rename a word globally across all synonym relationships."
+      },
+      "SynonymListResponse": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "nullable": true
+          },
+          "directSynonyms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Words the user explicitly linked to this word.",
+            "nullable": true
+          },
+          "transitiveSynonyms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Words reachable transitively but not directly linked.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Synonym lookup result, split into direct and transitive matches."
+      },
+      "WordListResponse": {
+        "type": "object",
+        "properties": {
+          "words": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Response containing a list of words (used for prefix search results)."
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Synonyms"
+    }
+  ]
+}

@@ -6,11 +6,29 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+
+    <!-- Emit the OpenAPI spec to disk on every build so the frontend's Orval codegen
+         always reads a current contract. The file is committed as the single source of truth. -->
+    <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+    <OpenApiDocumentsDirectory>$(MSBuildProjectDirectory)</OpenApiDocumentsDirectory>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
   </ItemGroup>
+
+  <!-- The ApiDescription tooling names the emitted file after the project; rename it to the
+       conventional swagger.json that Orval consumes. -->
+  <Target Name="RenameOpenApiDocument" AfterTargets="GenerateOpenApiDocuments">
+    <Move SourceFiles="$(MSBuildProjectDirectory)/$(MSBuildProjectName).json"
+          DestinationFiles="$(MSBuildProjectDirectory)/swagger.json"
+          OverwriteReadOnlyFiles="true"
+          Condition="Exists('$(MSBuildProjectDirectory)/$(MSBuildProjectName).json')" />
+  </Target>
 
 </Project>

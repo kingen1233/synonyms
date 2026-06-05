@@ -103,23 +103,7 @@ public class SynonymRepository : ISynonymRepository
             if (!removedA && !removedB)
                 return false;
 
-            // If either side is now completely disconnected, drop it from the graph.
-            var removedWords = new List<WordKey>();
-            if (nodeA is { DirectSynonyms.Count: 0 })
-            {
-                _graph.Remove(keyA);
-                removedWords.Add(keyA);
-            }
-
-            if (nodeB is { DirectSynonyms.Count: 0 })
-            {
-                _graph.Remove(keyB);
-                removedWords.Add(keyB);
-            }
-
-            // Re-traverse from both ends — if they're still reachable from each other
-            // the cluster stays intact; if not, it splits into two separate clusters.
-            RebuildSnapshot([keyA, keyB], removedWords);
+            RebuildSnapshot([keyA, keyB]);
             return true;
         }
     }
@@ -127,33 +111,26 @@ public class SynonymRepository : ISynonymRepository
     /// <inheritdoc/>
     public bool DeleteWord(Word word)
     {
-        var key = word.Key;
+        var deletedKey = word.Key;
 
         lock (_writeLock)
         {
-            if (!_graph.TryGetValue(key, out var node))
+            if (!_graph.TryGetValue(deletedKey, out var deletedNode))
                 return false;
 
-            // Hold onto the direct synonyms now - once we remove the word they're our starting
-            // points to figure out whether the cluster split.
-            var startWords = node.DirectSynonyms.ToList();
+            var synonymsToDeletedWord = deletedNode.DirectSynonyms.ToList();
 
-            foreach (var synonym in startWords)
+            // Remove the word from its direct synonyms' lists, then remove it from the graph.
+            foreach (var synonym in synonymsToDeletedWord)
             {
                 if (_graph.TryGetValue(synonym, out var synonymNode))
-                {
-                    synonymNode.DirectSynonyms.Remove(key);
-                    if (synonymNode.DirectSynonyms.Count == 0)
-                        _graph.Remove(synonym);
-                }
+                    synonymNode.DirectSynonyms.Remove(deletedKey);
             }
 
-            _graph.Remove(key);
+            _graph.Remove(deletedKey);
 
-            var removedWords = new List<WordKey> { key };
-            removedWords.AddRange(startWords.Where(s => !_graph.ContainsKey(s)));
-
-            RebuildSnapshot(startWords, removedWords);
+            // Rebuild the snapshot entries for all the deleted word's direct synonyms
+            RebuildSnapshot(synonymsToDeletedWord, [deletedKey]);
             return true;
         }
     }
@@ -223,25 +200,25 @@ public class SynonymRepository : ISynonymRepository
     /// </summary>
     private void RebuildSnapshot(
         IEnumerable<WordKey> startWords,
-        IReadOnlyCollection<WordKey>? removedWords = null
+        IReadOnlyCollection<WordKey>? removedKeys = null
     )
     {
-        var newSnapshot = new Dictionary<WordKey, SnapshotEntry>(Volatile.Read(ref _snapshot));
+        var nextSnapshot = new Dictionary<WordKey, SnapshotEntry>(Volatile.Read(ref _snapshot));
 
-        if (removedWords is not null)
-            foreach (var removed in removedWords)
-                newSnapshot.Remove(removed);
+        if (removedKeys is not null)
+            foreach (var removedKey in removedKeys)
+                nextSnapshot.Remove(removedKey);
 
         var clusters = SynonymGraphUtils.FindClusters(DirectSynonymsOf, startWords);
         foreach (var cluster in clusters)
         {
             foreach (var wordKey in cluster)
             {
-                newSnapshot[wordKey] = BuildSnapshotEntry(wordKey, cluster);
+                nextSnapshot[wordKey] = BuildSnapshotEntry(wordKey, cluster);
             }
         }
 
-        Volatile.Write(ref _snapshot, newSnapshot);
+        Volatile.Write(ref _snapshot, nextSnapshot);
     }
 
     /// <summary>
