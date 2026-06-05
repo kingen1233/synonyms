@@ -23,10 +23,13 @@ public interface ISynonymRepository
     );
 
     /// <summary>
-    /// Returns all words that start with <paramref name="prefix"/> (case-insensitive).
-    /// Returns an empty list for prefixes shorter than 3 characters.
+    /// Returns all words containing <paramref name="term"/> as a case-insensitive substring,
+    /// sorted alphabetically. An empty term matches every word.
     /// </summary>
-    IReadOnlyList<Word> SearchWords(string prefix);
+    IReadOnlyList<Word> SearchWords(string term);
+
+    /// <summary>Returns every word in the store, sorted alphabetically.</summary>
+    IReadOnlyList<Word> GetAllWords();
 
     /// <summary>Returns <c>true</c> if <paramref name="word"/> is present in the store.</summary>
     bool WordExists(Word word);

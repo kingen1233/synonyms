@@ -58,17 +58,20 @@ public class SynonymRepository : ISynonymRepository
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<Word> SearchWords(string prefix)
+    public IReadOnlyList<Word> SearchWords(string term)
     {
-        var normalizedPrefix = WordKey.From(prefix).Value;
+        var normalizedTerm = WordKey.From(term).Value;
         var snapshot = Volatile.Read(ref _snapshot);
 
         return snapshot
-            .Where(kv => kv.Key.Value.StartsWith(normalizedPrefix, StringComparison.OrdinalIgnoreCase))
+            .Where(kv => kv.Key.Value.Contains(normalizedTerm, StringComparison.OrdinalIgnoreCase))
             .Select(kv => kv.Value.Word)
             .OrderBy(w => w.Display, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
+
+    /// <inheritdoc/>
+    public IReadOnlyList<Word> GetAllWords() => SearchWords(string.Empty);
 
     /// <inheritdoc/>
     public bool WordExists(Word word) => Volatile.Read(ref _snapshot).ContainsKey(word.Key);

@@ -92,24 +92,42 @@ public sealed class SynonymsApiTests : IDisposable
     }
 
     [Fact]
-    public async Task SearchWords_ReturnsPrefixMatches()
+    public async Task SearchWords_ReturnsSubstringMatches()
+    {
+        await AddSynonym("apple", "pineapple");
+        await AddSynonym("banana", "berry");
+
+        var response = await _client.GetAsync($"{BaseUrl}/search?term=app");
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<WordListResponse>(JsonOptions);
+
+        Assert.Equal(["apple", "pineapple"], body!.Words);
+    }
+
+    [Fact]
+    public async Task SearchWords_EmptyTerm_ReturnsAllWords()
     {
         await AddSynonym("apple", "apricot");
         await AddSynonym("banana", "berry");
 
-        var response = await _client.GetAsync($"{BaseUrl}/search?prefix=app");
+        var response = await _client.GetAsync($"{BaseUrl}/search?term=");
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<WordListResponse>(JsonOptions);
 
-        Assert.Equal(["apple"], body!.Words);
+        Assert.Equal(["apple", "apricot", "banana", "berry"], body!.Words);
     }
 
     [Fact]
-    public async Task SearchWords_PrefixTooShort_Returns400()
+    public async Task GetAllWords_ReturnsEveryWord_SortedAlphabetically()
     {
-        var response = await _client.GetAsync($"{BaseUrl}/search?prefix=ap");
+        await AddSynonym("banana", "apple");
+        await AddSynonym("cherry", "date");
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var response = await _client.GetAsync($"{BaseUrl}/words/all");
+        response.EnsureSuccessStatusCode();
+        var body = await response.Content.ReadFromJsonAsync<WordListResponse>(JsonOptions);
+
+        Assert.Equal(["apple", "banana", "cherry", "date"], body!.Words);
     }
 
     [Fact]

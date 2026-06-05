@@ -80,14 +80,26 @@ public class SynonymRepositoryTests
     }
 
     [Fact]
-    public void SearchWords_ReturnsOnlyPrefixMatches_CaseInsensitive()
+    public void SearchWords_ReturnsSubstringMatches_CaseInsensitive()
     {
-        _repo.AddSynonym(Word("apple"), Word("apricot"));
+        _repo.AddSynonym(Word("apple"), Word("pineapple"));
         _repo.AddSynonym(Word("banana"), Word("berry"));
 
-        var matches = _repo.SearchWords("AP").Select(w => w.Display).ToArray();
+        var matches = _repo.SearchWords("APP").Select(w => w.Display).ToArray();
 
-        Assert.Equal(["apple", "apricot"], matches);
+        // "pineapple" matches on the substring even though it does not start with "app".
+        Assert.Equal(["apple", "pineapple"], matches);
+    }
+
+    [Fact]
+    public void GetAllWords_ReturnsEveryWord_SortedAlphabetically()
+    {
+        _repo.AddSynonym(Word("banana"), Word("apple"));
+        _repo.AddSynonym(Word("cherry"), Word("date"));
+
+        var all = _repo.GetAllWords().Select(w => w.Display).ToArray();
+
+        Assert.Equal(["apple", "banana", "cherry", "date"], all);
     }
 
     [Fact]

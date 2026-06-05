@@ -12,6 +12,7 @@
           "Synonyms"
         ],
         "summary": "Creates a bidirectional synonym link between two words.",
+        "operationId": "AddSynonym",
         "requestBody": {
           "content": {
             "application/json": {
@@ -53,10 +54,11 @@
         "tags": [
           "Synonyms"
         ],
-        "summary": "Returns all known words that start with the given prefix (case-insensitive).\nRequires at least 3 characters to prevent returning the entire dictionary.",
+        "summary": "Returns all known words containing the given term as a case-insensitive substring.\nAn empty term returns every word.",
+        "operationId": "SearchWords",
         "parameters": [
           {
-            "name": "prefix",
+            "name": "term",
             "in": "query",
             "schema": {
               "type": "string",
@@ -74,13 +76,24 @@
                 }
               }
             }
-          },
-          "400": {
-            "description": "Prefix is shorter than 3 characters.",
+          }
+        }
+      }
+    },
+    "/api/synonyms/words/all": {
+      "get": {
+        "tags": [
+          "Synonyms"
+        ],
+        "summary": "Returns every word in the store, sorted alphabetically.",
+        "operationId": "GetAllWords",
+        "responses": {
+          "200": {
+            "description": "All known words (may be empty).",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
+                  "$ref": "#/components/schemas/WordListResponse"
                 }
               }
             }
@@ -94,6 +107,7 @@
           "Synonyms"
         ],
         "summary": "Returns all synonyms for the given word, including transitive ones.\nThe queried word itself is excluded from the result.",
+        "operationId": "GetSynonyms",
         "parameters": [
           {
             "name": "word",
@@ -132,6 +146,7 @@
           "Synonyms"
         ],
         "summary": "Renames a word globally across all synonym relationships.",
+        "operationId": "RenameWord",
         "parameters": [
           {
             "name": "word",
@@ -204,6 +219,7 @@
           "Synonyms"
         ],
         "summary": "Removes the direct synonym link between two words. Both words remain in the store.",
+        "operationId": "DeleteLink",
         "requestBody": {
           "content": {
             "application/json": {
@@ -256,6 +272,7 @@
           "Synonyms"
         ],
         "summary": "Completely removes a word and all its synonym relationships from the store.",
+        "operationId": "DeleteWord",
         "parameters": [
           {
             "name": "word",

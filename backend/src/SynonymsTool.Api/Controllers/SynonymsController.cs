@@ -29,17 +29,25 @@ public sealed class SynonymsController(ISynonymService service) : ControllerBase
     }
 
     /// <summary>
-    /// Returns all known words that start with the given prefix (case-insensitive).
-    /// Requires at least 3 characters to prevent returning the entire dictionary.
+    /// Returns all known words containing the given term as a case-insensitive substring.
+    /// An empty term returns every word.
     /// </summary>
     /// <response code="200">Matching words (may be empty).</response>
-    /// <response code="400">Prefix is shorter than 3 characters.</response>
     [HttpGet("search")]
     [ProducesResponseType(typeof(WordListResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public ActionResult<WordListResponse> SearchWords([FromQuery] string prefix = "")
+    public ActionResult<WordListResponse> SearchWords([FromQuery] string term = "")
     {
-        var words = service.SearchWords(prefix);
+        var words = service.SearchWords(term);
+        return new WordListResponse { Words = words.Select(w => w.Display).ToArray() };
+    }
+
+    /// <summary>Returns every word in the store, sorted alphabetically.</summary>
+    /// <response code="200">All known words (may be empty).</response>
+    [HttpGet("words/all")]
+    [ProducesResponseType(typeof(WordListResponse), StatusCodes.Status200OK)]
+    public ActionResult<WordListResponse> GetAllWords()
+    {
+        var words = service.GetAllWords();
         return new WordListResponse { Words = words.Select(w => w.Display).ToArray() };
     }
 

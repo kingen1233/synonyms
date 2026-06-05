@@ -18,9 +18,14 @@ public interface ISynonymService
     /// <exception cref="NotFoundException">The word is not present in the store.</exception>
     SynonymResult GetSynonyms(string word);
 
-    /// <summary>Returns all stored words starting with <paramref name="prefix"/> (case-insensitive).</summary>
-    /// <exception cref="ValidationException">The prefix is shorter than 3 characters.</exception>
-    IReadOnlyList<Word> SearchWords(string prefix);
+    /// <summary>
+    /// Returns all stored words containing <paramref name="term"/> as a case-insensitive
+    /// substring. An empty term returns every word.
+    /// </summary>
+    IReadOnlyList<Word> SearchWords(string term);
+
+    /// <summary>Returns every word in the store, sorted alphabetically.</summary>
+    IReadOnlyList<Word> GetAllWords();
 
     /// <summary>Removes the direct synonym link between two words; both words remain in the store.</summary>
     /// <exception cref="ValidationException">The two words are the same.</exception>

@@ -35,13 +35,10 @@ public sealed class SynonymService(ISynonymRepository repository) : ISynonymServ
     }
 
     /// <inheritdoc/>
-    public IReadOnlyList<Word> SearchWords(string prefix)
-    {
-        if (prefix.Trim().Length < 3)
-            throw new ValidationException("Prefix must be at least 3 characters.");
+    public IReadOnlyList<Word> SearchWords(string term) => repository.SearchWords(term);
 
-        return repository.SearchWords(prefix);
-    }
+    /// <inheritdoc/>
+    public IReadOnlyList<Word> GetAllWords() => repository.GetAllWords();
 
     /// <inheritdoc/>
     public void DeleteLink(string wordA, string wordB)

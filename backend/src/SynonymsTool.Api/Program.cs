@@ -41,6 +41,13 @@ builder.Services.AddSwaggerGen(options =>
 		Description = "In-memory bidirectional synonym graph with transitive lookup."
 	});
 
+	// Use the controller action name as the OpenAPI operationId so Orval generates
+	// clean, predictable client function names (addSynonym, getSynonyms, ...).
+	options.CustomOperationIds(apiDescription =>
+		apiDescription.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor descriptor
+			? descriptor.ActionName
+			: null);
+
 	// Include XML doc comments so Orval gets rich operation descriptions.
 	var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
 	var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
