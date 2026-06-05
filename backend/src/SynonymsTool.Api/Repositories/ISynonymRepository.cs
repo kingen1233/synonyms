@@ -15,10 +15,11 @@ public interface ISynonymRepository
 
     /// <summary>
     /// Returns synonyms for <paramref name="word"/> split into direct (explicitly linked)
-    /// and transitive (reachable via the cluster but not directly linked).
+    /// and transitive (reachable via the cluster but not directly linked, each with a
+    /// <see cref="TransitiveSynonym.ClosestNeighbour"/> connector).
     /// Returns empty lists if the word is unknown.
     /// </summary>
-    (IReadOnlyList<Word> DirectSynonyms, IReadOnlyList<Word> TransitiveSynonyms) GetSynonyms(
+    (IReadOnlyList<Word> DirectSynonyms, IReadOnlyList<TransitiveSynonym> TransitiveSynonyms) GetSynonyms(
         Word word
     );
 

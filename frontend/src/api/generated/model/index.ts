@@ -12,4 +12,5 @@ export * from './problemDetails';
 export * from './renameWordRequest';
 export * from './searchWordsParams';
 export * from './synonymListResponse';
+export * from './transitiveSynonymResponse';
 export * from './wordListResponse';

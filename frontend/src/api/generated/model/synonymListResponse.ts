@@ -5,6 +5,7 @@
  * In-memory bidirectional synonym graph with transitive lookup.
  * OpenAPI spec version: v1
  */
+import type { TransitiveSynonymResponse } from './transitiveSynonymResponse';
 
 /**
  * Synonym lookup result, split into direct and transitive matches.
@@ -18,8 +19,8 @@ export interface SynonymListResponse {
    */
   directSynonyms?: string[] | null;
   /**
-   * Words reachable transitively but not directly linked.
+   * Words reachable transitively, each with the nearest connecting word.
    * @nullable
    */
-  transitiveSynonyms?: string[] | null;
+  transitiveSynonyms?: TransitiveSynonymResponse[] | null;
 }

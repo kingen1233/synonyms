@@ -29,7 +29,7 @@ public class SynonymRepository : ISynonymRepository
     private record SnapshotEntry(
         Word Word,
         Word[] DirectSynonymsDisplayWords,
-        Word[] TransitiveSynonymsDisplayWords
+        TransitiveSynonym[] TransitiveSynonymsList
     );
 
     // Source of truth — the synonym graph. Mutated only under _writeLock.
@@ -45,7 +45,7 @@ public class SynonymRepository : ISynonymRepository
     private readonly Lock _writeLock = new();
 
     /// <inheritdoc/>
-    public (IReadOnlyList<Word> DirectSynonyms, IReadOnlyList<Word> TransitiveSynonyms) GetSynonyms(
+    public (IReadOnlyList<Word> DirectSynonyms, IReadOnlyList<TransitiveSynonym> TransitiveSynonyms) GetSynonyms(
         Word word
     )
     {
@@ -53,7 +53,7 @@ public class SynonymRepository : ISynonymRepository
         var snapshot = Volatile.Read(ref _snapshot);
 
         return snapshot.TryGetValue(key, out var entry)
-            ? (entry.DirectSynonymsDisplayWords, entry.TransitiveSynonymsDisplayWords)
+            ? (entry.DirectSynonymsDisplayWords, entry.TransitiveSynonymsList)
             : ([], []);
     }
 
@@ -225,8 +225,8 @@ public class SynonymRepository : ISynonymRepository
     }
 
     /// <summary>
-    /// Builds the read entry for one word: its direct synonyms, and the rest of its
-    /// cluster as transitive synonyms.
+    /// Builds the read entry for one word: its direct synonyms, and each transitive synonym
+    /// paired with the closest neighbour.
     /// </summary>
     private SnapshotEntry BuildSnapshotEntry(WordKey wordKey, HashSet<WordKey> cluster)
     {
@@ -237,13 +237,27 @@ public class SynonymRepository : ISynonymRepository
             .OrderBy(w => w.Display, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        var transitiveDisplayWords = cluster
+        // BFS parent map: lets us walk back from any transitive target to find the first
+        // hop out of wordKey (the closest neighbour), without storing full paths.
+        var transitiveMap = SynonymGraphUtils.GenerateTransitiveMap(DirectSynonymsOf, wordKey);
+
+        var transitiveList = cluster
             .Where(w => w != wordKey && !node.DirectSynonyms.Contains(w))
-            .Select(WordOf)
-            .OrderBy(w => w.Display, StringComparer.OrdinalIgnoreCase)
+            .Select(targetKey =>
+            {
+                // Traverse the map until the parent is wordKey, which means we've found the closest neighbour.
+                var closestNeighbour = targetKey;
+                while (transitiveMap[closestNeighbour] != wordKey)
+                {
+                    closestNeighbour = transitiveMap[closestNeighbour];
+                }
+
+                return new TransitiveSynonym(WordOf(targetKey), WordOf(closestNeighbour));
+            })
+            .OrderBy(ts => ts.Word.Display, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        return new SnapshotEntry(node.Word, directDisplayWords, transitiveDisplayWords);
+        return new SnapshotEntry(node.Word, directDisplayWords, transitiveList);
     }
 
     private Word WordOf(WordKey wordKey) => _graph[wordKey].Word;

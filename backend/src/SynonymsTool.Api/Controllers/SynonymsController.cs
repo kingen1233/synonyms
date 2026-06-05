@@ -67,7 +67,9 @@ public sealed class SynonymsController(ISynonymService service) : ControllerBase
         {
             Word = result.Word.Display,
             DirectSynonyms = result.DirectSynonyms.Select(x => x.Display).ToArray(),
-            TransitiveSynonyms = result.TransitiveSynonyms.Select(x => x.Display).ToArray(),
+            TransitiveSynonyms = result.TransitiveSynonyms
+                .Select(x => new TransitiveSynonymResponse { Word = x.Word.Display, ClosestNeighbour = x.ClosestNeighbour.Display })
+                .ToArray(),
         };
     }
 

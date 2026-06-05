@@ -62,7 +62,9 @@ public sealed class SynonymsApiTests : IDisposable
         var a = await GetSynonyms("a");
 
         Assert.Equal(["b"], a.DirectSynonyms);
-        Assert.Equal(["c"], a.TransitiveSynonyms);
+        Assert.Single(a.TransitiveSynonyms);
+        Assert.Equal("c", a.TransitiveSynonyms[0].Word);
+        Assert.Equal("b", a.TransitiveSynonyms[0].ClosestNeighbour);
     }
 
     [Fact]

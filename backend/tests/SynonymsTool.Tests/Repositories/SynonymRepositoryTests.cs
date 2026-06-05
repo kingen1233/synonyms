@@ -18,7 +18,11 @@ public class SynonymRepositoryTests
 
     /// <summary>Convenience: the display strings of a word's transitive synonyms.</summary>
     private string[] GetTransitiveSynonyms(string word) =>
-        _repo.GetSynonyms(Word(word)).TransitiveSynonyms.Select(x => x.Display).ToArray();
+        _repo.GetSynonyms(Word(word)).TransitiveSynonyms.Select(x => x.Word.Display).ToArray();
+
+    private string? GetClosestNeighbour(string word, string transitive) =>
+        _repo.GetSynonyms(Word(word)).TransitiveSynonyms
+            .FirstOrDefault(x => x.Word.Display == transitive)?.ClosestNeighbour.Display;
 
     [Fact]
     public void AddSynonym_LookupWorksInBothDirections()
@@ -62,12 +66,14 @@ public class SynonymRepositoryTests
         _repo.AddSynonym(Word("a"), Word("b"));
         _repo.AddSynonym(Word("b"), Word("c"));
 
-        // a's direct synonym is b; c is reachable only transitively.
+        // a's direct synonym is b; c is reachable only transitively via b.
         Assert.Equal(["b"], GetDirectSynonyms("a"));
         Assert.Equal(["c"], GetTransitiveSynonyms("a"));
+        Assert.Equal("b", GetClosestNeighbour("a", "c"));
         // and symmetrically for c
         Assert.Equal(["b"], GetDirectSynonyms("c"));
         Assert.Equal(["a"], GetTransitiveSynonyms("c"));
+        Assert.Equal("b", GetClosestNeighbour("c", "a"));
     }
 
     [Fact]

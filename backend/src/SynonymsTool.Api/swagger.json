@@ -405,14 +405,31 @@
           "transitiveSynonyms": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/TransitiveSynonymResponse"
             },
-            "description": "Words reachable transitively but not directly linked.",
+            "description": "Words reachable transitively, each with the nearest connecting word.",
             "nullable": true
           }
         },
         "additionalProperties": false,
         "description": "Synonym lookup result, split into direct and transitive matches."
+      },
+      "TransitiveSynonymResponse": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "description": "The transitively-linked word.",
+            "nullable": true
+          },
+          "closestNeighbour": {
+            "type": "string",
+            "description": "The closest neighbour of the queried word.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "A transitively-linked synonym and the nearest synonym that connects it."
       },
       "WordListResponse": {
         "type": "object",

@@ -9,5 +9,5 @@ namespace SynonymsTool.Api.Services;
 public sealed record SynonymResult(
     Word Word,
     IReadOnlyList<Word> DirectSynonyms,
-    IReadOnlyList<Word> TransitiveSynonyms
+    IReadOnlyList<TransitiveSynonym> TransitiveSynonyms
 );

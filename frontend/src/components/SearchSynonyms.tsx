@@ -88,7 +88,6 @@ export function SearchSynonyms() {
     const allWords = allWordsQuery.data?.words ?? [];
     const matchedWords = hasQuery ? options : allWords;
     const visibleOptions = matchedWords.slice(0, MAX_OPTIONS);
-    const truncatedCount = matchedWords.length - visibleOptions.length;
     const isLoadingOptions = hasQuery ? searchQuery.isFetching : allWordsQuery.isFetching;
 
     return (
@@ -208,12 +207,12 @@ export function SearchSynonyms() {
                                         </Tooltip>
                                     ))}
                                     {/* Transitive synonyms: amber pills marked with a link icon; not directly
-                      unlinkable since they are inferred via the root word. */}
+                      unlinkable since they are inferred via an intermediate word. */}
                                     {transitive.map((synonym) => (
-                                        <Tooltip key={synonym} title={`Linked via “${result.word}” — remove an intermediate link to sever it`}>
+                                        <Tooltip key={synonym.word} title={`Linked via “${synonym.closestNeighbour}” - remove that link to sever it`}>
                                             <Chip
                                                 icon={<LinkIcon />}
-                                                label={synonym}
+                                                label={synonym.word}
                                                 size="medium"
                                                 sx={{
                                                     fontWeight: 600,

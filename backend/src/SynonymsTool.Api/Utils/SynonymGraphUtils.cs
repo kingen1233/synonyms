@@ -73,4 +73,33 @@ public static class SynonymGraphUtils
 
         return clusters;
     }
+
+    /// <summary>
+    /// BFS from <paramref name="start"/>, returning a child→parent map for every reachable node.
+    /// </summary>
+    public static Dictionary<WordKey, WordKey> GenerateTransitiveMap(
+        Func<WordKey, IReadOnlyCollection<WordKey>?> directSynonymsOf,
+        WordKey start
+    )
+    {
+        var transitiveMap = new Dictionary<WordKey, WordKey> { [start] = start };
+        var toVisit = new Queue<WordKey>();
+        toVisit.Enqueue(start);
+
+        while (toVisit.Count > 0)
+        {
+            var currentWord = toVisit.Dequeue();
+            var synonyms = directSynonymsOf(currentWord);
+            if (synonyms is null)
+                continue;
+
+            foreach (var synonym in synonyms)
+            {
+                if (transitiveMap.TryAdd(synonym, currentWord))
+                    toVisit.Enqueue(synonym);
+            }
+        }
+
+        return transitiveMap;
+    }
 }
