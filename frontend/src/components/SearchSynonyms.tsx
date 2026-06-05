@@ -170,7 +170,7 @@ export function SearchSynonyms() {
                                         <EditIcon fontSize="small" />
                                     </IconButton>
                                 </Tooltip>
-                                <Tooltip title="Delete word entirely">
+                                <Tooltip title="Delete word">
                                     <IconButton
                                         size="small"
                                         color="error"
@@ -189,22 +189,25 @@ export function SearchSynonyms() {
                                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
                                     {/* Direct synonyms: indigo pills; the unlink icon removes the link. */}
                                     {direct.map((synonym) => (
-                                        <Tooltip key={synonym} title="Remove this synonym link">
-                                            <Chip
-                                                label={synonym}
-                                                onDelete={() =>
-                                                    deleteLink.mutate({ data: { wordA: selectedWord, wordB: synonym } })
-                                                }
-                                                deleteIcon={<LinkOffIcon />}
-                                                disabled={deleteLink.isPending}
-                                                sx={{
-                                                    fontWeight: 600,
-                                                    bgcolor: '#eef2ff',
-                                                    color: '#4338ca',
-                                                    border: '1px solid #e0e7ff',
-                                                }}
-                                            />
-                                        </Tooltip>
+                                        <Chip
+                                            key={synonym}
+                                            label={synonym}
+                                            onDelete={() =>
+                                                deleteLink.mutate({ data: { wordA: selectedWord, wordB: synonym } })
+                                            }
+                                            deleteIcon={
+                                                <Tooltip title="Remove this synonym link">
+                                                    <LinkOffIcon />
+                                                </Tooltip>
+                                            }
+                                            disabled={deleteLink.isPending}
+                                            sx={{
+                                                fontWeight: 600,
+                                                bgcolor: '#eef2ff',
+                                                color: '#4338ca',
+                                                border: '1px solid #e0e7ff',
+                                            }}
+                                        />
                                     ))}
                                     {/* Transitive synonyms: amber pills marked with a link icon; not directly
                       unlinkable since they are inferred via an intermediate word. */}
