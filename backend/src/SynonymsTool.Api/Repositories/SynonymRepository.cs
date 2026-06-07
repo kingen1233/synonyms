@@ -229,27 +229,34 @@ public class SynonymRepository : ISynonymRepository
             .OrderBy(w => w.Display, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        // BFS parent map: lets us walk back from any transitive target to find the first
-        // hop out of wordKey (the closest neighbour), without storing full paths.
         var transitiveMap = SynonymGraphUtils.GenerateTransitiveMap(DirectSynonymsOf, wordKey);
-
         var transitiveList = cluster
             .Where(w => w != wordKey && !node.DirectSynonyms.Contains(w))
-            .Select(targetKey =>
-            {
-                // Traverse the map until the parent is wordKey, which means we've found the closest neighbour.
-                var closestNeighbour = targetKey;
-                while (transitiveMap[closestNeighbour] != wordKey)
-                {
-                    closestNeighbour = transitiveMap[closestNeighbour];
-                }
-
-                return new TransitiveSynonym(WordOf(targetKey), WordOf(closestNeighbour));
-            })
+            .Select(targetKey => new TransitiveSynonym(
+                WordOf(targetKey),
+                WordOf(FindClosestNeighbour(targetKey, wordKey, transitiveMap))
+            ))
             .OrderBy(ts => ts.Word.Display, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
         return new SnapshotEntry(node.Word, directDisplayWords, transitiveList);
+    }
+
+    /// <summary>
+    /// Traverse the BFS parent map from <paramref name="targetKey"/> back toward
+    /// <paramref name="originKey"/>, returning the direct neighbour of <paramref name="originKey"/>
+    /// that lies on the shortest path to <paramref name="targetKey"/>.
+    /// </summary>
+    private static WordKey FindClosestNeighbour(
+        WordKey targetKey,
+        WordKey originKey,
+        Dictionary<WordKey, WordKey> parentMap
+    )
+    {
+        var current = targetKey;
+        while (parentMap[current] != originKey)
+            current = parentMap[current];
+        return current;
     }
 
     private Word WordOf(WordKey wordKey) => _graph[wordKey].Word;
