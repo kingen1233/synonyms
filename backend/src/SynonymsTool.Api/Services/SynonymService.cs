@@ -6,21 +6,20 @@ namespace SynonymsTool.Api.Services;
 /// <summary>
 /// Default <see cref="ISynonymService"/>. Converts raw user strings into normalized
 /// <see cref="Word"/> values, applies the synonym business rules, and delegates storage to
-/// the <see cref="ISynonymRepository"/>. Stateless — all state lives in the singleton repository.
+/// the <see cref="ISynonymRepository"/>.
 /// </summary>
 public sealed class SynonymService(ISynonymRepository repository) : ISynonymService
 {
     /// <inheritdoc/>
     public void AddSynonym(string wordA, string wordB)
     {
-        var a = Word.From(wordA);
-        var b = Word.From(wordB);
+        var firstWord = Word.From(wordA);
+        var secondWord = Word.From(wordB);
 
-        // Business rule: a word cannot be a synonym of itself.
-        if (a.Key == b.Key)
+        if (firstWord.Key == secondWord.Key)
             throw new ValidationException("WordA and WordB must be different words.");
 
-        repository.AddSynonym(a, b);
+        repository.AddSynonym(firstWord, secondWord);
     }
 
     /// <inheritdoc/>
@@ -43,13 +42,13 @@ public sealed class SynonymService(ISynonymRepository repository) : ISynonymServ
     /// <inheritdoc/>
     public void DeleteLink(string wordA, string wordB)
     {
-        var a = Word.From(wordA);
-        var b = Word.From(wordB);
+        var firstWord = Word.From(wordA);
+        var secondWord = Word.From(wordB);
 
-        if (a.Key == b.Key)
+        if (firstWord.Key == secondWord.Key)
             throw new ValidationException("WordA and WordB must be different words.");
 
-        if (!repository.DeleteLink(a, b))
+        if (!repository.DeleteLink(firstWord, secondWord))
             throw new NotFoundException($"No link found between '{wordA}' and '{wordB}'.");
     }
 

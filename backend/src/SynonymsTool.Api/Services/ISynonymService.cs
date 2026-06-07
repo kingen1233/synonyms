@@ -4,9 +4,7 @@ namespace SynonymsTool.Api.Services;
 
 /// <summary>
 /// Application layer between the HTTP controller and the synonym store.
-/// Owns string → <see cref="Word"/> conversion and the business validation rules, throwing
-/// <see cref="AppException"/>-derived exceptions for rule failures so the controller stays
-/// free of status-code logic (the global handler maps exceptions to responses).
+/// Handles string to <see cref="Word"/> conversion and the business validation rules.
 /// </summary>
 public interface ISynonymService
 {
