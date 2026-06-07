@@ -6,21 +6,29 @@ namespace SynonymsTool.Api.Middleware;
 
 /// <summary>
 /// Translates exceptions escaping the controller pipeline into JSON error responses.
-/// Expected business failures (<see cref="AppException"/>) map to their declared status code;
-/// anything else is an unexpected fault and becomes a 500 with no stack-trace leak.
+/// HTTP status mapping for domain exceptions is owned here, keeping the domain layer
+/// free of any web concerns. Unexpected faults become 500 with no stack-trace leak.
 /// </summary>
 public sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
 {
+	// Maps domain exception types to HTTP status codes. The domain layer stays unaware of HTTP.
+	private static readonly Dictionary<Type, int> StatusCodeMap = new()
+	{
+		[typeof(NotFoundException)]  = StatusCodes.Status404NotFound,
+		[typeof(ConflictException)]  = StatusCodes.Status409Conflict,
+		[typeof(ValidationException)] = StatusCodes.Status400BadRequest,
+	};
+
 	public async Task InvokeAsync(HttpContext context)
 	{
 		try
 		{
 			await next(context);
 		}
-		catch (AppException ex)
+		catch (AppException ex) when (StatusCodeMap.TryGetValue(ex.GetType(), out var statusCode))
 		{
 			// Expected, rule-based failure — not logged as an error.
-			await WriteErrorResponse(context, ex.StatusCode, ex.Message);
+			await WriteErrorResponse(context, statusCode, ex.Message);
 		}
 		catch (Exception ex)
 		{
