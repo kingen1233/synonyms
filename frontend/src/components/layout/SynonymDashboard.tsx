@@ -1,6 +1,6 @@
 import { Box, Container, Stack, Typography } from '@mui/material';
-import { AddSynonymForm } from './AddSynonymForm';
-import { SearchSynonyms } from './SearchSynonyms';
+import { AddSynonymForm } from '../dictionary/AddSynonymForm';
+import { DictionaryPanel } from './DictionaryPanel';
 
 export function SynonymDashboard() {
   return (
@@ -13,15 +13,14 @@ export function SynonymDashboard() {
               component="h1"
               sx={{ fontSize: { xs: '2rem', md: '2.25rem' }, color: 'text.primary' }}
             >
-              Synonym Directory
+              Synonym Dictionary
             </Typography>
             <Typography
               variant="body2"
               color="text.secondary"
               sx={{ mt: 1, maxWidth: 460, mx: 'auto' }}
             >
-              Add word relationships seamlessly and find transitive, bidirectional matches
-              instantly.
+              Add, search and browse synonyms.
             </Typography>
           </Box>
 
@@ -34,7 +33,7 @@ export function SynonymDashboard() {
             }}
           >
             <AddSynonymForm />
-            <SearchSynonyms />
+            <DictionaryPanel />
           </Box>
 
           <Box

@@ -11,9 +11,9 @@ import {
   TextField,
 } from '@mui/material';
 import AddLinkIcon from '@mui/icons-material/AddLink';
-import { useAddSynonym } from '../api/generated/synonyms/synonyms';
-import { getApiErrorMessage } from '../api/errors';
-import { CardHeader } from './CardHeader';
+import { useAddSynonym } from '../../api/generated/synonyms/synonyms';
+import { getApiErrorMessage } from '../../api/errors';
+import { CardHeader } from '../word/CardHeader';
 
 interface FormValues {
   wordA: string;
@@ -61,8 +61,8 @@ export function AddSynonymForm() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="First word"
-                  placeholder="e.g. clean"
+                  label="Word"
+                  placeholder="e.g. Clean"
                   fullWidth
                   error={!!errors.wordA}
                   helperText={errors.wordA?.message}
@@ -84,8 +84,8 @@ export function AddSynonymForm() {
               render={({ field }) => (
                 <TextField
                   {...field}
-                  label="Second word (synonym)"
-                  placeholder="e.g. wash"
+                  label="Synonym"
+                  placeholder="e.g. Wash"
                   fullWidth
                   error={!!errors.wordB}
                   helperText={errors.wordB?.message}

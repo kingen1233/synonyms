@@ -9,8 +9,8 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material';
-import { useRenameWord } from '../api/generated/synonyms/synonyms';
-import { getApiErrorMessage } from '../api/errors';
+import { useRenameWord } from '../../api/generated/synonyms/synonyms';
+import { getApiErrorMessage } from '../../api/errors';
 
 interface RenameWordDialogProps {
   open: boolean;
