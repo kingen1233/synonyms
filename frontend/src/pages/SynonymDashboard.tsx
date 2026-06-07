@@ -1,6 +1,6 @@
 import { Box, Container, Stack, Typography } from '@mui/material';
-import { AddSynonymForm } from '../dictionary/AddSynonymForm';
-import { DictionaryPanel } from './DictionaryPanel';
+import { AddSynonymForm } from '../components/synonym-dashboard/AddSynonymForm';
+import { DictionaryPanel } from '../components/synonym-dashboard/DictionaryPanel';
 
 export function SynonymDashboard() {
   return (
@@ -56,4 +56,3 @@ export function SynonymDashboard() {
     </Box>
   );
 }
-

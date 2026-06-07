@@ -7,8 +7,8 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import { useDeleteWord } from '../../api/generated/synonyms/synonyms';
-import { getApiErrorMessage } from '../../api/errors';
+import { useDeleteWord } from '../../../api/generated/synonyms/synonyms';
+import { getApiErrorMessage } from '../../../api/errors';
 
 interface DeleteWordDialogProps {
   open: boolean;

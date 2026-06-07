@@ -53,4 +53,3 @@ export async function seedSynonyms(): Promise<void> {
     seeded = false;
   }
 }
-

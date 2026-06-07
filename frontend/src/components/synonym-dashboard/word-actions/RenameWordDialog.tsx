@@ -9,8 +9,8 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material';
-import { useRenameWord } from '../../api/generated/synonyms/synonyms';
-import { getApiErrorMessage } from '../../api/errors';
+import { useRenameWord } from '../../../api/generated/synonyms/synonyms';
+import { getApiErrorMessage } from '../../../api/errors';
 
 interface RenameWordDialogProps {
   open: boolean;
@@ -60,8 +60,7 @@ export function RenameWordDialog({ open, currentWord, onClose, onRenamed }: Rena
             rules={{
               required: 'Required',
               maxLength: { value: 100, message: 'Max 100 characters' },
-              validate: (value) =>
-                value.trim().length > 0 ? true : 'Required',
+              validate: (value) => (value.trim().length > 0 ? true : 'Required'),
             }}
             render={({ field }) => (
               <TextField
@@ -70,7 +69,7 @@ export function RenameWordDialog({ open, currentWord, onClose, onRenamed }: Rena
                 margin="dense"
                 label="New word"
                 fullWidth
-                error={!!errors.newWord}
+                error={Boolean(errors.newWord)}
                 helperText={errors.newWord?.message}
               />
             )}

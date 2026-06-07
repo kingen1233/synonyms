@@ -5,41 +5,34 @@ namespace SynonymsTool.Api.Repositories;
 
 /// <summary>
 /// In-memory synonym store. Uses a copy-on-write design so reads never block:
-/// a fully-resolved read snapshot is replaced atomically on every write, so readers
-/// only ever touch the immutable snapshot — never the mutable graph.
+/// a fully-resolved read snapshot is replaced on every write, so readers
+/// only ever touch the immutable snapshot.
 ///
-/// <c>_graph</c> is the source of truth: each word maps to a node holding its original
-/// display casing and the keys of its directly-linked synonyms.
+/// <c>_graph</c> is the source of truth: each word maps to a node containing its original
+/// display casing and the keys of its synonyms.
 /// <c>_snapshot</c> is the read projection: each word maps to a precomputed entry whose
-/// direct and transitive synonyms are already resolved to display casing and sorted.
-///
-/// All graph keys are <see cref="WordKey"/> — the normalized (trimmed, lower-case) form of a word.
+/// direct and transitive synonyms are already resolved to display casing.
 /// </summary>
 public class SynonymRepository : ISynonymRepository
 {
-    // A word in the graph: its original display casing plus the keys of its direct synonyms.
+    // A word in the graph represented by its original display value, and its direct synonyms.
     private class Node
     {
         public required Word Word { get; set; }
         public HashSet<WordKey> DirectSynonyms { get; } = [];
     }
 
-    // A precomputed read result for one word — direct and transitive synonyms, already
-    // resolved to display casing and sorted. Reads return these straight from the snapshot.
+    // A precomputed read result for one word
     private record SnapshotEntry(
         Word Word,
         Word[] DirectSynonymsDisplayWords,
         TransitiveSynonym[] TransitiveSynonymsList
     );
 
-    // Source of truth — the synonym graph. Mutated only under _writeLock.
-    // No comparer needed: WordKey is normalized at construction, so its value equality is
-    // already case-insensitive.
+    // The source of truth synonym graph
     private readonly Dictionary<WordKey, Node> _graph = [];
 
-    // Copy-on-write read snapshot: word key → fully-resolved SnapshotEntry.
-    // Swapped out atomically on every write. Not marked volatile — we use
-    // Volatile.Read/Write directly to avoid CS0420.
+    // Immutable snapshot containing words and their resolved synonyms, ready to be returned by read methods. Rebuilt on every write.
     private Dictionary<WordKey, SnapshotEntry> _snapshot = [];
 
     private readonly Lock _writeLock = new();
@@ -198,8 +191,7 @@ public class SynonymRepository : ISynonymRepository
 
     /// <summary>
     /// Rebuilds the snapshot entries for every word in the synonym clusters touched by this
-    /// write, then swaps in the new snapshot atomically. Words in untouched clusters keep
-    /// their existing entries.
+    /// write. Words in untouched clusters keep their existing entries.
     /// </summary>
     private void RebuildSnapshot(
         IEnumerable<WordKey> startWords,

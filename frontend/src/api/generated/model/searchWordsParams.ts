@@ -7,5 +7,5 @@
  */
 
 export type SearchWordsParams = {
-term?: string;
+  term?: string;
 };

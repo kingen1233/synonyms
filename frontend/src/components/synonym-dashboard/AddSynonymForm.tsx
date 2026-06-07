@@ -1,24 +1,13 @@
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Stack,
-  TextField,
-} from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Stack, TextField } from '@mui/material';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import { useAddSynonym } from '../../api/generated/synonyms/synonyms';
+import type { AddSynonymRequest } from '../../api/generated/model';
 import { getApiErrorMessage } from '../../api/errors';
-import { CardHeader } from '../word/CardHeader';
-
-interface FormValues {
-  wordA: string;
-  wordB: string;
-}
+import { CardHeader } from '../shared/CardHeader';
+import { SuccessSnackbar } from '../shared/SuccessSnackbar';
 
 export function AddSynonymForm() {
   const queryClient = useQueryClient();
@@ -29,20 +18,20 @@ export function AddSynonymForm() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({ defaultValues: { wordA: '', wordB: '' } });
+  } = useForm<AddSynonymRequest>({ defaultValues: { wordA: '', wordB: '' } });
 
   const addSynonym = useAddSynonym({
     mutation: {
       onSuccess: (_data, variables) => {
         setSuccessMessage(`Linked “${variables.data.wordA}” ↔ “${variables.data.wordB}”.`);
-        // Any synonym lookups / searches may now be stale.
+
         queryClient.invalidateQueries();
         reset();
       },
     },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = (values: AddSynonymRequest) => {
     setSuccessMessage(null);
     addSynonym.mutate({ data: values });
   };
@@ -50,21 +39,28 @@ export function AddSynonymForm() {
   return (
     <Card>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', p: 3 }}>
-        <CardHeader icon={<AddLinkIcon fontSize="small" />} title="Add synonym pair" tone="indigo" />
+        <CardHeader
+          icon={<AddLinkIcon fontSize="small" />}
+          title="Add synonym pair"
+          tone="indigo"
+        />
 
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ flexGrow: 1 }}>
           <Stack spacing={2}>
             <Controller
               name="wordA"
               control={control}
-              rules={{ required: 'Required', maxLength: { value: 100, message: 'Max 100 characters' } }}
+              rules={{
+                required: 'Required',
+                maxLength: { value: 100, message: 'Max 100 characters' },
+              }}
               render={({ field }) => (
                 <TextField
                   {...field}
                   label="Word"
                   placeholder="e.g. Clean"
                   fullWidth
-                  error={!!errors.wordA}
+                  error={Boolean(errors.wordA)}
                   helperText={errors.wordA?.message}
                 />
               )}
@@ -75,9 +71,8 @@ export function AddSynonymForm() {
               rules={{
                 required: 'Required',
                 maxLength: { value: 100, message: 'Max 100 characters' },
-                // Disallow linking a word to itself (server enforces this too; friendlier UX).
-                validate: (value, all) =>
-                  value.trim().toLowerCase() !== all.wordA.trim().toLowerCase()
+                validate: (value, form) =>
+                  value.trim().toLowerCase() !== form.wordA.trim().toLowerCase()
                     ? true
                     : 'A word cannot be a synonym of itself.',
               }}
@@ -87,7 +82,7 @@ export function AddSynonymForm() {
                   label="Synonym"
                   placeholder="e.g. Wash"
                   fullWidth
-                  error={!!errors.wordB}
+                  error={Boolean(errors.wordB)}
                   helperText={errors.wordB?.message}
                 />
               )}
@@ -110,11 +105,7 @@ export function AddSynonymForm() {
             {getApiErrorMessage(addSynonym.error, 'Could not add synonyms.')}
           </Alert>
         )}
-        {successMessage && (
-          <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccessMessage(null)}>
-            {successMessage}
-          </Alert>
-        )}
+        <SuccessSnackbar message={successMessage} onClose={() => setSuccessMessage(null)} />
       </CardContent>
     </Card>
   );

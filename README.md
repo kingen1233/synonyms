@@ -1,11 +1,21 @@
 # Synonym Dictionary – Full-Stack Developer Assessment
 
 A production-ready, full-stack in-memory synonym search tool. This application allows users
-to link words bidirectionally and automatically resolves all transitive connections (i.e.,
+to link as synonyms, and automatically resolves all transitive connections (i.e.,
 if B is a synonym of A, and C is a synonym of B, then C is automatically a synonym of A).
 
-This solution was designed with a heavy focus on **read performance, thread-safety, and
-maintainability** to reflect production-level engineering standards.
+This solution was designed with a focus on read performance, thread-safety, and
+maintainability.
+
+## Overview
+As per the requirements, the Synonym Dictionary lets you add and view synonyms. Since the application should be "production ready", I also added the options to:
+- Rename created words
+- Delete words
+- Unlink words as synonyms
+
+In order to make it easier for the user to correct its own mistakes and typos. I also added the option for users to both search for words, but also to browse for everything in the storeage. As a bonus to the transitive connections rule, I also added a `on hover` for the transitive synonym chips, that displays which synonym it is that connects the two words.
+
+For testing purposes, whenever you launch the app it makes requests towards the BE to populate a starting dictionary. This isn't the most elegant solution, but it was the easiest one at the time.
 
 ## Tech Stack
 
@@ -19,43 +29,30 @@ maintainability** to reflect production-level engineering standards.
 ## Architecture & Design Tradeoffs
 
 To meet the requirements of a fast, thread-safe, in-memory system, the backend architecture
-relies on a **Copy-on-Write Read Snapshot** pattern.
+relies on a two step
 
-### 1. Lock-Free $\mathcal{O}(1)$ Reads
+### 1. Lock-Free O(1) Reads
 
 The repository maintains two distinct structures:
 
-- `_graph`: The mutable source of truth (a `Dictionary`).
-- `_snapshot`: An immutable, fully-resolved read projection.
+- `_graph`: The mutable source of truth
+- `_snapshot`: An immutable projection 
 
-This snapshot is swapped atomically via `Volatile.Read` and `Volatile.Write` on every write
-operation. Because the snapshot is immutable, **reads are entirely lock-free**. A synonym
-lookup requires only a single dictionary lookup—there is no graph traversal or thread
-blocking during client queries.
+This snapshot is swapped via `Volatile.Read` and `Volatile.Write` on every write
+operation. Because the snapshot is immutable, reads are entirely lock-free. A synonym lookup requires only a single dictionary lookup, since the snapshot already contains all synonym links.
 
-### 2. Transitive Resolution at Write-Time
+### 2. Transitive Synonyms are resovled when writing
 
-Transitive synonyms are resolved during `RebuildSnapshot`, not at query time. Each
-`SnapshotEntry` stores pre-sorted arrays of direct synonyms and `TransitiveSynonym` objects.
+Transitive synonyms are resolved whenever the graph is updated. Each `SnapshotEntry` stores a word, and its arrays of direct synonyms and `TransitiveSynonym` objects.
 
-- A `TransitiveSynonym` pairs the target word with its `ClosestNeighbour` (the direct
-  neighbor of the queried word on the shortest BFS path to the target, computed via
-  `SynonymGraphUtils.BfsParents`).
-- **The Benefit:** `GetSynonyms` executes in $\mathcal{O}(1)$ time, returning precomputed
-  arrays straight from the snapshot.
+The benefit of this approach is that it enables `GetSynonyms` to execute in O(1) time
 
 ### 3. CPU & Memory Optimization
 
-When a user adds or edits a word, the system does not rebuild the entire dictionary from
-scratch. `RebuildSnapshot` copies the existing snapshot forward and recomputes **only** the
-specific synonym clusters touched by the write (using BFS via
-`SynonymGraphUtils.FindClusters`). Untouched clusters are ignored.
+When a user adds or edits a word, `RebuildSnapshot` copies the existing snapshot forward and recomputes only the specific synonym clusters affected by the updated word.
 
-- **The Tradeoff:** Each word's resolved synonyms are stored twice (once in the raw `_graph`
-  and once in the precomputed `_snapshot`). This slight duplication in memory footprint is
-  an intentional tradeoff to buy lock-free, lightning-fast $\mathcal{O}(1)$ reads under
-  heavy concurrent load. The extra memory per transitive entry is just one `Word` reference,
-  keeping the memory bounds strict.
+The trade off for this, is that each word's resolved synonyms are stored twice, once in the `_graph`
+and once in the precomputed `_snapshot`.
 
 ## Local Development
 
@@ -96,7 +93,7 @@ dotnet test SynonymsTool.slnx
 
 ## Client Code Generation
 
-The backend emits `backend/src/SynonymsTool.Api/swagger.json` on every `dotnet build`. To
+The backend generates `backend/src/SynonymsTool.Api/swagger.json` on every `dotnet build`. To
 keep the frontend strictly typed, you can regenerate the TypeScript API client after any
 backend contract change:
 
@@ -106,22 +103,10 @@ npm run generate:api
 ```
 
 ## API Reference
-
-Base path: `/api/synonyms`
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/` | Link two words as bidirectional synonyms |
-| `GET` | `/{word}` | Get all synonyms for a word (direct + transitive) |
-| `GET` | `/search?term=` | Substring-search the dictionary |
-| `GET` | `/words/all` | Return every word, sorted alphabetically |
-| `DELETE` | `/link` | Remove a direct synonym link (both words remain) |
-| `DELETE` | `/word/{word}` | Remove a word and all its links |
-| `PUT` | `/{word}` | Rename a word everywhere it appears |
-
 *Full interactive documentation is available locally at: `http://localhost:5172/swagger`*
 
 
 
-## THings to consider for future
+## Things to consider for future
 - Adding text as translation keys in order to enable localised webpage. 
+- Adding a cool graph view to explore the synonym connections in.

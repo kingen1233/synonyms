@@ -1,4 +1,4 @@
-import { SynonymDashboard } from './components/layout/SynonymDashboard';
+import { SynonymDashboard } from './pages/SynonymDashboard';
 
 function App() {
   return <SynonymDashboard />;

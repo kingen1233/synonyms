@@ -20,7 +20,6 @@ public readonly record struct Word(WordKey Key, string Display)
 /// </summary>
 public readonly record struct WordKey(string Value)
 {
-    /// <summary>Normalizes raw user input (trim + lower-case) into a lookup key.</summary>
     public static WordKey From(string raw) => new(raw.Trim().ToLowerInvariant());
 
     public override string ToString() => Value;
