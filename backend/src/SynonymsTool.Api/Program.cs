@@ -64,11 +64,9 @@ var app = builder.Build();
 // Unhandled exceptions → structured JSON error (no stack-trace leaks).
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
-{
-	app.UseSwagger();
-	app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Synonyms Tool v1"));
-}
+// Swagger UI enabled in all environments for easy testing.
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Synonyms Tool v1"));
 
 app.UseCors();
 

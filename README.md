@@ -56,7 +56,27 @@ and once in the precomputed `_snapshot`.
 
 ## Local Development
 
-### Prerequisites
+### Running in Docker
+
+Make sure [Docker Desktop](https://www.docker.com/products/docker-desktop/) is installed and running, then from the repo root:
+
+```bash
+docker compose up --build
+```
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend API | http://localhost:8080 |
+| Swagger UI | http://localhost:8080/swagger |
+
+To stop and remove the containers:
+
+```bash
+docker compose down
+```
+
+### Prerequisites (local development without Docker)
 
 - .NET 10 SDK
 - Node.js 20+

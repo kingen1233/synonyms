@@ -14,7 +14,6 @@ RUN dotnet restore SynonymsTool.slnx
 COPY . .
 RUN dotnet publish src/SynonymsTool.Api/SynonymsTool.Api.csproj \
       --configuration Release \
-      --no-restore \
       --output /app/publish
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
