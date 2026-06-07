@@ -8,6 +8,10 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+      # Render health-checks the PORT it injects (default 10000).
+      # Override ASP.NET Core's listen address to match.
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
       # CORS: allow the static frontend origin (and local dev) to call the API.
       # AllowedOrigins is read as an array in Program.cs via IConfiguration.
       # ⚠️  After your first deploy, replace the placeholder below with the real
@@ -22,8 +26,9 @@ services:
   # CDN. No Docker needed; VITE_API_URL is baked in at build time.
   - type: static
     name: synonyms-frontend
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     envVars:
       # ⚠️  Replace with your real backend URL after the first backend deploy.
       - key: VITE_API_URL
